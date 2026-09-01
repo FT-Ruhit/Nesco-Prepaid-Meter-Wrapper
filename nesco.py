@@ -6,7 +6,7 @@ class NescoPrepaid():
     SUBMIT_TYPE_RECHARGE_HISTORY = 'রিচার্জ হিস্ট্রি'
     SUBMIT_TYPE_MONTHLY_CONSUMPTION = 'মাসিক ব্যবহার'
     
-    def __init__(self, customer_number):
+    def __init__(self, customer_number: int):
         self.customer_number = customer_number
         
     def _make_request(self, submit_type):
@@ -81,7 +81,7 @@ class NescoPrepaid():
         data = list(info.values())
         data = [data[1], data[3], data[5], data[6], data[8], data[9]]
         headers = ['Name', 'Address', 'Electricity Office', 'Feeder Name', 'Meter Number', 'Approved Load (kW)']
-        print(len(headers), len(data))
+        # print(len(headers), len(data))
         parsed_data = dict()
         for i in range(0, len(data)):
             parsed_data[headers[i]] = data[i]
@@ -91,16 +91,18 @@ class NescoPrepaid():
         response = self._make_request(self.SUBMIT_TYPE_RECHARGE_HISTORY)
         _, data = self._extract_monthly_consumption(response)
         data = [
-            [row[0], row[1], row[8], row[9], row[11], row[12], row[13]]
+            [row[0], row[2], row[8], row[10], row[11], row[12], row[13], row[14]]
             for row in data
         ]
-        headers = ['ID', 'Token', 'Power', 'Amount', 'Via', 'Date', 'Status']
+        headers = ['ID', 'Token', 'Discount', 'Amount', 'Power Added(KWh)', 'Via', 'Date', 'Status']
         return data, headers
 
     def get_monthly_consumption(self):
         response = self._make_request(self.SUBMIT_TYPE_MONTHLY_CONSUMPTION)
         headers, data = self._extract_monthly_consumption(response)
         headers = ["Year", "Month", "Recharge", "Discount", "Usage"]
-        data = [row[:5] for row in data]
-        
-        return data, headers
+        data = [row[:5] for row in data][0]
+        parsed_data = dict()
+        for i in range(0, len(data)):
+            parsed_data[headers[i]] = data[i]
+        return parsed_data
